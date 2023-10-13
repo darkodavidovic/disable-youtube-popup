@@ -1,0 +1,20 @@
+{
+    "name": "DisableYoutubePopup",
+    "version": "1.0",
+    "manifest_version": 3,
+    "description": "Disable youtube premium popup",
+    "icons": {
+        "48": "yticon.png",
+        "128": "yticon.png"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.youtube.com/*"
+            ],
+            "js": [
+                "youtube-popup.js"
+            ]
+        }
+    ]
+}

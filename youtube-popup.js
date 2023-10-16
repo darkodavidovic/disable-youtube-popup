@@ -18,7 +18,7 @@ function remover() {
         // if play button is paused, click it to play
         if (isPaused) {
             console.log("%cButton was paused. Clicking...", textGreen)
-            console.log("%cButton clicked")
+            console.log("%cContinue playing the video...", textGreen)
             playButton.click()
         }
     }

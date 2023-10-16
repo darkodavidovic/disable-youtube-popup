@@ -7,7 +7,7 @@ function remover() {
     const popups = document.querySelectorAll("ytd-popup-container")
 
     // get play button
-    const playButton = document.querySelector("ytp-play-button")
+    const playButton = document.querySelector(".ytp-play-button")
 
     // if play button exists
     if (playButton) {
@@ -18,6 +18,7 @@ function remover() {
         // if play button is paused, click it to play
         if (isPaused) {
             console.log("%cButton was paused. Clicking...", textGreen)
+            console.log("%cButton clicked")
             playButton.click()
         }
     }

@@ -2,26 +2,87 @@ const textWhite = "background-color: black; color: white; font-size: 16px; paddi
 const textGreen = "background-color: black; color: #00ff23; font-size: 16px; padding: 5px 10px; border-radius: 5px;"
 const textYellow = "background-color: black; color: #ffef00; font-size: 16px; padding: 5px 10px; border-radius: 5px;"
 
-function remover() {
+function getUserInteractionState() {
+    const playButton = document.querySelector(".ytp-play-button")
+    if (playButton.dataset.userInteraction) {
+        return playButton.dataset.userInteraction // "true"
+    }
+    return undefined
+}
+
+function setUserInteractionState(e) {
+    // console.log(e.target)
+    const playButton = document.querySelector(".ytp-play-button")
+    playButton.setAttribute("data-user-interaction", "true")
+    console.log(`%cUser interaction occurred. Autoplay idle...`, textWhite)
+}
+
+function resetUserInteractionState() {
+    const videoPlayer = document.querySelector("video")
+    const playButton = document.querySelector(".ytp-play-button")
+    // attach event listeners to video player and play button
+    videoPlayer.removeEventListener("click", setUserInteractionState)
+    videoPlayer.addEventListener("click", setUserInteractionState)
+    playButton.removeEventListener("click", setUserInteractionState)
+    playButton.addEventListener("click", setUserInteractionState)
+    // remove user interaction data from play button
+    playButton.removeAttribute("data-user-interaction")
+}
+
+function continuePlaying() {
+    setTimeout(() => {
+        const playButton = document.querySelector(".ytp-play-button")
+        // if play button exists
+        if (playButton) {
+            // get play button state by user
+            const userInteractionState = getUserInteractionState()
+            // get play button state by youtube
+            const getYoutubePlayState = playButton.dataset.titleNoTooltip
+            const isPausedByYoutube = getYoutubePlayState === "Play"
+
+            // if play button is paused and pause was not made by user
+            if (isPausedByYoutube && userInteractionState === undefined) {
+                playButton.click()
+                console.log("%cThe video was paused by youtube. Play clicked...", textGreen)
+            }
+        }
+    }, 0)
+}
+
+// Declare the MutationObserver outside to use unsubscribe
+let buttonObserver;
+
+// Function to subscribe the MutationObserver
+function buttonSubscribe() {
+    const videoPlayer = document.querySelector("video");
+    const playButton = document.querySelector(".ytp-play-button");
+
+    if (videoPlayer) {
+        buttonObserver = new MutationObserver((mutationsList, observer) => {
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'attributes') {
+                    console.log("%cButton state changed...", textYellow);
+                    continuePlaying();
+                }
+            }
+        });
+        buttonObserver.observe(playButton, {
+            attributes: true,
+            attributeFilter: ['data-title-no-tooltip'],
+        });
+    }
+}
+
+// Function to unsubscribe the MutationObserver
+function buttonUnsubscribe() {
+    if (buttonObserver) {
+        buttonObserver.disconnect();
+    }
+}
+
+function popupRemover() {
     // collect all popups found
     const popups = document.querySelectorAll("ytd-popup-container")
-
-    // get play button
-    const playButton = document.querySelector(".ytp-play-button")
-
-    // if play button exists
-    if (playButton) {
-        // get play button state
-        const playButtonState = playButton.getAttribute("data-title-no-tooltip")
-        const isPaused = playButtonState === "Play"
-
-        // if play button is paused, click it to play
-        if (isPaused) {
-            console.log("%cButton was paused. Clicking...", textGreen)
-            console.log("%cContinue playing the video...", textGreen)
-            playButton.click()
-        }
-    }
 
     // if no popups found
     if (popups.length === 0) {
@@ -52,7 +113,10 @@ const titleElement = document.querySelector('title')
 
 const observer = new MutationObserver(() => {
     console.log("%cEvent detected on the page. Searching for popups...", textYellow);
-    remover()
+    popupRemover() // remove popups every time title changes
+    resetUserInteractionState() // reset user interaction state to undefined
+    buttonUnsubscribe() // unsubscribe the MutationObserver before each new event
+    buttonSubscribe() // subscribe the MutationObserver
 })
 
 observer.observe(titleElement, {

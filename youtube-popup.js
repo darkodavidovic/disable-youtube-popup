@@ -10,11 +10,13 @@ function getUserInteractionState() {
     return undefined
 }
 
-function setUserInteractionState(e) {
-    // console.log(e.target)
+function setUserInteractionState() {
     const playButton = document.querySelector(".ytp-play-button")
     playButton.setAttribute("data-user-interaction", "true")
-    console.log(`%cUser interaction occurred. Autoplay idle...`, textWhite)
+    // display user interaction state but ignore click by extension
+    if(!playButton.dataset?.continuePlaying) {
+        console.log(`%cUser interaction occurred. Autoplay idle...`, textWhite)
+    }
 }
 
 function resetUserInteractionState() {
@@ -42,8 +44,10 @@ function continuePlaying() {
 
             // if play button is paused and pause was not made by user
             if (isPausedByYoutube && userInteractionState === undefined) {
+                playButton.setAttribute("data-continue-playing", "true")
                 playButton.click()
-                console.log("%cThe video was paused by youtube. Play clicked...", textGreen)
+                playButton.removeAttribute("data-continue-playing")
+                console.log("%cThe video was paused by popup. Play clicked...", textGreen)
             }
         }
     }, 0)
@@ -58,10 +62,9 @@ function buttonSubscribe() {
     const playButton = document.querySelector(".ytp-play-button");
 
     if (videoPlayer) {
-        buttonObserver = new MutationObserver((mutationsList, observer) => {
+        buttonObserver = new MutationObserver((mutationsList) => {
             for (const mutation of mutationsList) {
                 if (mutation.type === 'attributes') {
-                    console.log("%cButton state changed...", textYellow);
                     continuePlaying();
                 }
             }
@@ -86,7 +89,7 @@ function popupRemover() {
 
     // if no popups found
     if (popups.length === 0) {
-        console.log("%cNo popups found. Exiting...", textWhite)
+        console.log("%cNo popups found. Idling...", textWhite)
         return
     }
 
@@ -112,7 +115,7 @@ function popupRemover() {
 const titleElement = document.querySelector('title')
 
 const observer = new MutationObserver(() => {
-    console.log("%cEvent detected on the page. Searching for popups...", textYellow);
+    console.log("%cEvent detected. Searching for popups...", textYellow);
     popupRemover() // remove popups every time title changes
     resetUserInteractionState() // reset user interaction state to undefined
     buttonUnsubscribe() // unsubscribe the MutationObserver before each new event
